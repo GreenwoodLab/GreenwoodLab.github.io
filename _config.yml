@@ -1,0 +1,26 @@
+# Dependencies
+markdown:            kramdown
+highlighter:         pygments
+
+# Permalinks
+#
+# Use of `relative_permalinks` ensures post links from the index work properly.
+permalink:           pretty
+relative_permalinks: true
+
+# Setup
+title:               Greenwood Lab
+tagline:             'Statistical Genetics at the Lady Davis Institute'
+description:         'Lady Davis Institute'
+url:                 http://lanyon.getpoole.com
+baseurl:             /
+paginate:            5
+
+# About/contact
+author:
+  name:              Lady Davis Institute
+  url:               https://twitter.com/mdo
+  email:             markdotto@gmail.com
+
+# Custom vars
+version:             1.0.0

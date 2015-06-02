@@ -10,9 +10,9 @@ title: Tutorials
 {:toc}-->
 
 * [Introduction to Genomic Ranges `R` objects Presentation by Greg Voisin](/tutorials/granges/granges-tutorial-presentation.html)  
-[source](/tutorials/granges/granges-tutorial-presentation.Rpres)
+[source](https://raw.githubusercontent.com/adminGreenwoodLab/adminGreenwoodLab.github.io/master/tutorials/granges/granges-tutorial-presentation.Rpres)
 * [Introduction to Genomic Ranges `R` objects Vignette by Greg Voisin](/tutorials/granges/granges-tutorial.html)  
-[source](/tutorials/granges/granges-tutorial.Rmd)
+[source](https://raw.githubusercontent.com/adminGreenwoodLab/adminGreenwoodLab.github.io/master/tutorials/granges/granges-tutorial.Rmd)
 
 
 

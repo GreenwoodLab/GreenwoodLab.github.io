@@ -1,0 +1,421 @@
+---
+title: "Manipulation of NGS data with Bioconductor : Genomic Ranges library"
+author: "Greg VOISIN"
+date: "Wednesday, March 18, 2015"
+output: html_document
+---
+
+
+
+
+# Manipulation of IRanges and GenomicRanges R objects:
+
+## load library
+```{r, message=FALSE, warning = F}
+library(IRanges)
+library(GenomicRanges)
+library(GenomicFeatures)
+library(rtracklayer)
+```
+
+
+##Illumina annotation
+
+```{r}
+library(FDb.InfiniumMethylation.hg19)
+ 
+#acces to the data
+infiniumMethylation <- features(FDb.InfiniumMethylation.hg19)
+univers <- names(infiniumMethylation)
+
+#object class
+class(infiniumMethylation)
+ 
+#acces a one element
+infiniumMethylation["cg00000029"]
+ 
+# acces au chr
+as.vector(seqnames(infiniumMethylation["cg00000029"]))
+ 
+# acces coord.
+X= ranges(infiniumMethylation["cg00000029"])
+start(X)
+end(X)
+```
+
+
+#Annotation hub:
+```{r}
+library(AnnotationHub)
+ah = AnnotationHub()
+
+ensGene = ah$goldenpath.hg19.database.ensGene_0.0.1.RData
+ensGene
+```
+
+#findOverlaps function
+```{r}
+mask= seqnames(ensGene)== "chr1"
+ensGene_chr1= ensGene[mask] 
+
+ov = findOverlaps(infiniumMethylation, ensGene_chr1)
+head(ov)
+infiniumMethylation[head(queryHits(ov))]
+ensGene_chr1[head(subjectHits(ov))]
+
+```
+
+
+
+## IRanges instance
+Indicates the start and end positions of 7 genes.
+```{r}
+ir <- IRanges(start=c(7, 9, 12, 14, 22:24),end=c(15, 11, 12, 18, 26, 27, 28))
+ir
+```  
+
+Some methods are available to manipulate the IRanges objects:
+  - intra-range methods: flank, narrow, reflect, resize,restrict, and shift, among others
+```{r}
+shift(ir, 5)
+```
+  - inter-range methods : disjoin, reduce, gaps, and range.
+```{r}
+reduce(ir)
+coverage(ir)
+```  
+  - between range methods: intersect, setdiff, union, pintersect, psetdiff, and punion.
+
+
+## GenomicsRanges instance
+```{r}
+genes <- GRanges(  seqnames=Rle(c("Chr1", "X"), c(1,1)), 
+                   ranges=IRanges(start=c(19967117, 18962306), end=c(19973212, 18962925)),    
+                   strand=Rle(c("+", "-"),c(1,1)),
+                   seqlengths=c("Chr1"=27905053L, "X"=22422827L)
+                )
+
+```
+Remarks:   
+ - GRanges object includes  IRanges object.  
+ - note the L in seqlengths args, which simply guarantees that a number which could be interpreted as 1 byte will always be interpreted as 4 bytes (signed as Long).  
+ - the minimal information for GRanges object is seqnames, ranges and strand. 
+ - Rle object : Run Length Encoding is a common compression technique for storing long sequences with lengthy repeat)
+
+Some methods are available to manipulate the GenomicRanges objects:                 
+  - inspection and accessor
+```{r}
+  genes
+  class(genes)
+  genes[2]
+  strand(genes)
+  width(genes)
+  length(genes)
+```
+  - add informations : names for each genes.
+```{r}
+names(genes) <- c("FBgn0039155", "FBgn0085359")
+genes
+```
+
+  - optional informations for the genes: META columns.
+```{r}
+genes
+mcols(genes) <- DataFrame(EntrezId=c("42865", "2768869"), Symbol=c("kal-1", "CG34330"))
+genes 
+```
+
+## GRangesList instance
+
+GRangesList represents a more complexe structure and used for sliced transcripts, all genes of the genome with the exon composition, ... 
+```{r}
+gr1 <- GRanges(seqnames = "chr2", ranges = IRanges(3, 6), strand = "+", score = 5L, GC = 0.45)
+gr2 <- GRanges(seqnames = c("chr1", "chr1"), ranges = IRanges(c(7,13), width = 3), strand = c("+", "-"), score = 3:4, GC = c(0.3, 0.5))
+grlist <- GRangesList("txA" = gr1, "txB" = gr2)
+grlist
+```
+Why is interesting to work with a list ? In practice,  the mclapply allows to parallize the job on a cluster, from a list object.
+
+
+# Manipulate a big GRange object 
+
+##import a gff file 
+```{r}
+gff <- import.gff("DATA/gff3.gff", asRangedData=FALSE) 
+gff
+```
+
+## Accessors the gff informations
+```{r}
+seqlengths(gff) <- end(ranges(gff[which(values(gff)[,"type"]=="chromosome"),]))
+names(gff) <- 1:length(gff)
+gff[1:4,]
+gff[1:4]
+gff[1:4, c("type", "group")]
+c(gff[1:2], gff[401:402])
+
+seqnames(gff)
+ranges(gff)
+strand(gff)
+seqlengths(gff) 
+
+values(gff)
+values(gff)[, "type"]
+  
+gff[elementMetadata(gff)[ ,"type"] == "gene"] 
+```
+
+## Useful utilities for GRanges objects
+
+### Remove chromosome ranges
+```{r}
+gff <- gff[values(gff)$type != "chromosome"] 
+```
+
+### Erases the strand information
+```{r}
+strand(gff) <- "*"
+```
+
+### Collapses overlapping ranges to continuous ranges. 
+```{r}
+reduce(gff)
+```
+
+### Returns uncovered regions.
+```{r}
+gaps(gff)
+```
+
+### Returns disjoint ranges.
+```{r}
+disjoin(gff) 
+```
+
+### Returns coverage of ranges.
+```{r}
+coverage(gff)
+```  
+
+### Returns the index pairings for the overlapping ranges.
+```{r}
+findOverlaps(gff, gff[1:4])
+```  
+   
+### Counts overlapping ranges
+```{r}
+countOverlaps(gff, gff[1:4]) 
+```
+
+### Returns only overlapping ranges
+```{r}
+subsetByOverlaps(gff, gff[1:4])
+```  
+
+
+## Basic manipulations of genomic sequences
+The output of NGS technology is essentially a collection of genomic sequences, so it's interesting to have a R tools to manage this kind of objects.
+
+### Build a set of 3 DNA sequences:
+```{r}
+myseq <- c("ATGCAGACATAGTG","ATGAACATAGATCC","GTACAGATCAC")
+class(myseq)
+length(myseq)
+```
+
+### Use the REGULAR EXPRESSION function to find a particular structure
+WARNNING: it'S important to understand how to use correctly the regular expression functions: grep, strsplit, gsub ...
+```{r}
+grep("ATG", myseq)
+myseq[grep("ATG", myseq)]
+```
+
+### Use the REGULAR EXPRESSION function to return the first structure found in each sequence
+```{r}
+pos1 <- regexpr("AT", myseq) 
+pos1
+```
+
+### Use the REGULAR EXPRESSION function to return all structure found in each sequence
+```{r}
+pos2 <- gregexpr("AT", myseq) 
+pos2
+```
+
+### Use the REGULAR EXPRESSION function to substitute
+```{r}
+ gsub("^ATG", "atg", myseq)
+```
+
+### Parsing sequence
+```{r}
+nchar(myseq)
+substring(myseq[1], c(1,3), c(2,5))
+substring(myseq, c(1,4,7), c(2,6,10))   #hint: 2 arg is a start, 3 arg is a stop
+
+```
+ 
+# Manipulation with a fasta file
+
+## Install Biostrings package:
+```{r, eval = F}
+source("http://bioconductor.org/biocLite.R")
+biocLite(c("Biostrings")
+
+```
+
+## load library
+```{r}
+library(Biostrings )
+```
+
+## Read FASTA, for arabidopsis collection sequences.
+```{r}
+assembly = readDNAStringSet("DATA/tair10chr.fasta")
+```
+
+## inspect assembly object: assembly is a container allowing to store many sequences in one object.
+```{r}
+class(assembly)
+assembly
+length(assembly)
+assembly[[1]]
+width(assembly)             
+summary(width(assembly))
+sum(width(assembly))
+hist(log10( width(assembly)), 100)
+unlist(assembly)
+```
+
+##  Manipulate assembly object:
+### Subset [[ ]]
+```{r}
+largest.contig = assembly[[ which(width(assembly)==max(width(assembly))) ]]
+largest.contig
+```
+
+### Subset [ i ]
+```{r}
+top.contigs = assembly[order(width(assembly),decreasing=TRUE)][1:5]
+top.contigs
+```
+
+### names
+```{r}
+head( names(assembly) )
+```
+
+### Subset [boolean]
+```{r}
+subsetChrC =  assembly[grepl( "ChrC",names(assembly) )]
+writeXStringSet(subsetChrC, file="DATA/subsetChrC.fasta", width=80)
+```
+
+### Subset [names]
+```{r}
+assembly["Chr1"]
+```
+
+### subseq
+```{r}
+subseq(assembly,start=1,end=10)
+```
+
+### nucleotide Content
+```{r}
+head( alphabetFrequency(assembly) )
+```
+
+### letterFrequency: e.g. GC content
+
+```{r}
+head( alphabetFrequency(assembly) )
+head(letterFrequency(assembly,letters=c("GC")) / width(assembly))
+```
+
+### sliding window frequency content (take some times)
+
+```{r}
+plot(letterFrequencyInSlidingView(subseq(largest.contig,start=1,end=1000) , view.width=100, c("GC"))[,1] / 1000,ylab="GC content")
+```
+
+### dinucl. freqs and oligonucleotide frequency (count k-mers!)
+```{r}
+head(dinucleotideFrequency(assembly) )
+head(oligonucleotideFrequency(assembly,width = 5) )   
+head(oligonucleotideFrequency(assembly,width = 6) ) 
+```
+
+### reverse-complement
+```{r}
+assembly.rc = reverseComplement(assembly)
+assembly.rc
+```
+  
+### duplicated
+```{r}
+duplicated(assembly[c(1,3)])
+```
+
+### unique to remove duplicates
+```{r}
+unique(assembly[c(1,3)])
+```
+
+# Manipulate fastQ file 
+
+## Install ShortRead package:
+```{r, eval = F}
+source("http://bioconductor.org/biocLite.R")
+biocLite("ShortRead")
+```
+
+## Load library
+```{r, message=F, warning=F}
+library(ShortRead )
+```
+
+## Read the FastQ file and create a ShortReadQ file
+```{r}
+fq <- readFastq("DATA/SRR031724_1_subset.fastq")
+fq
+```
+
+## CountLines in a fastQ file;
+```{r}
+countLines("DATA/SRR031724_1_subset.fastq")
+```
+
+
+### Inspect the first three reads : sequence, quality, id
+```{r}
+head(sread(fq), 3)
+head(quality(fq), 3)
+head(id(fq), 3)
+```
+
+### Example of report generated with Bioconductor: the code is not provided  (more advanced) this report gives interesting information about the QC of fastQ file
+```{r, eval= F}
+browseURL("DATA/GSM461176_81_qa_report/index.html")
+```
+
+### GC content:
+```{r}
+alf0 <- alphabetFrequency(sread(fq), as.prob=TRUE, collapse=TRUE)
+sum(alf0[c("G", "C")])
+```
+  
+
+### Alphabet by cycle:
+```{r}
+abc <- alphabetByCycle(sread(fq))
+matplot(t(abc[c("A", "C", "G", "T"),]), type="l")
+```
+
+### Adaptor trimming
+```{r}
+head(sread(fq), 3)
+fqtrim <- trimLRPatterns(Lpattern="GTT", subject=fq)
+sread(fqtrim)[1:2]
+
+```

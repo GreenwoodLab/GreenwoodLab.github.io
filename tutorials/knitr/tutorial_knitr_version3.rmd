@@ -1,0 +1,147 @@
+---
+output:
+  knitrBootstrap::bootstrap_document:
+    title: "Rmarkdown_for_Journal_club"
+    theme: amelia
+    highlight: sunburst
+    theme.chooser: TRUE
+    highlight.chooser: TRUE
+---
+
+library(knitr)
+library(markdown)
+knit('tutorial_knitr_version3.rmd')
+markdownToHTML("tutorial_knitr_version3.md", "tutorial_knitr_version3.html",fragment.only = TRUE)
+
+
+This is an R Markdown document, which present the basis element to work with the knitr package in the goal to create some reports.
+Here, we presente a collection of tricks to work with knitr in R studio server.
+
+
+# Why use knitR?
+
+- Generate Report in HMTL, PDF, DOC
+- more easier that latex
+- integrate in R studio
+- combine all elements : documentation, code, result...
+- includes Figure, table, summaries :
+- allows many operation such as loops
+- use Rmarkdown language
+
+# Rmarkdown 
+- like HTML but without HTML tag
+- include R code.
+
+
+# Rmarkdown commands.
+
+
+![alt text](figure/Rmarkdown_command.png)
+
+
+# Create a new Rmarkdown document.
+
+
+![alt text](figure/Rmarkdown_doc.png)
+
+# include a R code in Rmarkdown document
+- the R code is executed in a chunk
+- the variable are global
+- the Rmarkdown could have many options (or not).
+
+## Chunk options
+Many options are available to control the R code execution
+
+![alt text](figure/chunk.svg)
+
+
+## Three ways to include a table
+
+### With ktable
+
+```{r results='asis'}
+# create a data.frame structure.
+library(knitr)
+mydata = data.frame(value1= 1:4, value2= 6:9)
+rownames(mydata) <- paste("gene", 1:4)
+kable(mydata, include.rownames=TRUE)
+```
+
+### With googlevis
+```{r results='asis'}
+library(googleVis)
+mydata = data.frame(value1= 1:100, value2= 6:105)
+rownames(mydata) <- paste("gene", 1:100)
+
+table = gvisTable(mydata,options=list(page='enable', height='automatic', width='automatic'))
+table
+```
+
+### With DT package 
+
+```{r results='asis'}
+library(DT)
+
+table = datatable(mydata, class = 'cell-border stripe')
+
+table
+```
+
+
+## include a plot.
+
+2 strategies to do that:
+
+### from a R code directly:
+
+Here, we precise no option for the R chunk
+
+```{r}
+mydata =rnorm(1000)
+plot(mydata, cex= 0.4)
+```
+
+In this case, we precise several options in the features of the plot
+
+```{r, fig.height= 14, fig.width= 14, fig.align='center'}
+mydata =rnorm(1000)
+plot(mydata, cex= 0.4, col= "red")
+```
+
+
+### from a file:
+
+R code to generate the plot
+```{r}
+png("figure/plot2insert.png")
+plot(mydata, cex= 0.4, col= "blue")
+dev.off()
+```
+
+Include the plot with the markdown syntax.
+![alt text](figure/plot2insert.png)
+
+
+# Strategie with big Data or big Computation:
+
+1. In the case, where you have a large dataset to analyze, it's important to review the 
+
+## Conclusion : 
+ - Easy to use
+ - One document for Script, documentation, result, reproducible.
+ - allows the interactive documentation 
+
+
+## To go further:
+
+ - CSS style
+ - Rpres
+ - include loops and template.
+
+
+
+
+
+
+
+

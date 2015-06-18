@@ -17,6 +17,7 @@ title: Tutorials
 [source](https://github.com/sahirbhatnagar/knitr-tutorial/blob/master/slides/mcgill-knitr.Rnw)
 * [Reproducible Research: An Introduction to `knitr` examples by Sahir Bhatnagar](https://github.com/sahirbhatnagar/knitr-tutorial)
 * [Heatmaps in `R` by Sahir Bhatnagar](http://sahirbhatnagar.com/heatmap/)
+* [`knitr` Tutorial by Greg Voisin](/tutorials/tutorial_knitr.html)
 
 
 

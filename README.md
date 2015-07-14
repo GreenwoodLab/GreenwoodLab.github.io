@@ -1,6 +1,6 @@
 # Greenwood Lab Website
 
-[http://admingreenwoodlab.github.io/](http://admingreenwoodlab.github.io/)
+[http://greenwoodlab.github.io/](http://greenwoodlab.github.io/)
 
 ## License
 

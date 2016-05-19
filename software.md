@@ -31,3 +31,15 @@ title: Software
 
 > [MURAT](https://github.com/GreenwoodLab/MURAT) is an [R](http://cran.r-project.org/) package to conduct rare-variant association tests for multiple continuous traits  
 
+----
+
+## [Eclust](http://sahirbhatnagar.com/eclust/)
+
+> This software is written in the open source software environment [R](http://cran.r-project.org/). It's main functionality is to fit statistical models for analyzing interactions between a high dimensional dataset (e.g. genomics, brain imaging), the environment and a response. It automatically performs variable selection and estimation, while conserving the strong heredity property, i.e., an interaction term is selected only if the main effects are in the model.
+
+---
+
+## [CellTypeAdjustment](https://github.com/GreenwoodLab/CellTypeAdjustment)
+
+> R script showing examples of running methods adjusting for cell type composition in DNA methylation studies (450K). Simulated data is available as well: [https://zenodo.org/record/46746#.VtW7MmSAOko](https://zenodo.org/record/46746#.VtW7MmSAOko)
+
